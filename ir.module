@@ -9,6 +9,8 @@ function ir_perm() {
   return array('display status', 'reserve item', 'administer settings');
 } // function ir_perm()
 
+
+
 function ir_menu() {
 
 	$items = array();
@@ -25,7 +27,7 @@ function ir_menu() {
 	    'title' => 'Reservation',
 	    'page callback' => 'ir_reservation_page',
 	    'page arguments' => array(1),
-	    'access callback' => 'display status',
+	    'access callback' => 'ir_access_display_status',
 	    'access arguments' => array(1),
 	    'weight' => 10,
 	    'type' => MENU_LOCAL_TASK,
@@ -35,6 +37,8 @@ function ir_menu() {
 
 } // function ir_menu()
 
+
+
 function ir_get_enabled_content_types($in_array = NULL) {
 	$a = array();
 	if (!$in_array)
@@ -43,7 +47,20 @@ function ir_get_enabled_content_types($in_array = NULL) {
 		if ($v) $a[$k] = $v;
 	}
 	return $a;
-}
+} // function ir_get_enabled_content_types
+
+
+
+function ir_access_display_status($node) {
+	$cta = ir_get_enabled_content_types();
+	if (!in_array($node->type, $cta)) {
+		return FALSE;
+	}
+	
+	return user_access('display status');	
+} // function ir_access_display_status
+
+
 
 function ir_admin() {
 	$form = array();
@@ -92,4 +109,19 @@ function ir_admin() {
 	}
 	
   	return system_settings_form($form);
-}
+} // function ir_admin
+
+
+
+function ir_form() {
+	$form = array();
+	$form['status'] = array('#value' => t('Status'));
+	$form['submit'] = array('#type' => 'submit', '#value' => t('Save'));
+	return $form;	
+} // function ir_form
+
+
+
+function ir_reservation_page($node) {
+	return "A";
+} // function ir_reservation_page

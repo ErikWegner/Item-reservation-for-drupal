@@ -1,0 +1,71 @@
+<?php
+
+
+/**
+* Valid permissions for this module
+* @return array An array of valid permissions for the asg module
+*/
+function ir_perm() {
+  return array('display status', 'reserve item', 'administer settings');
+} // function ir_perm()
+
+function ir_menu() {
+
+	$items = array();
+
+	$items['admin/settings/ir'] = array(
+		'title' => 'Item reservation',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('ir_admin'),
+		'access arguments' => array('administer settings'),
+	    'type' => MENU_NORMAL_ITEM,
+	);
+
+	$items['node/%node/reservation'] = array(
+	    'title' => 'Reservation',
+	    'page callback' => 'ir_reservation_page',
+	    'page arguments' => array(1),
+	    'access callback' => 'display status',
+	    'access arguments' => array(1),
+	    'weight' => 10,
+	    'type' => MENU_LOCAL_TASK,
+	);
+  
+	return $items;
+
+} // function ir_menu()
+
+function ir_get_enabled_content_types($in_array = NULL) {
+	$a = array();
+	if (!$in_array)
+		$in_array = variable_get('ir_contenttypes', NULL);
+	foreach ($in_array as $k => $v) {
+		if ($v) $a[$k] = $v;
+	}
+	return $a;
+}
+
+function ir_admin() {
+	$form = array();
+
+	$cta = ir_get_enabled_content_types();
+	
+	$form['ir_contenttypes'] = array(
+		'#type' => 'checkboxes',
+		'#title' => t('Content types'),
+		'#options' => node_get_types('names'),
+		'#default_value' => $cta,
+	);	
+	
+	foreach ($cta as $ctname) {
+		$nodeinfo = node_get_types('type', $ctname);
+		$form['ir_settings_' . $ctname] = array(
+			'#type' => 'fieldset', 
+			'#title' => $nodeinfo->name, 
+			'#collapsible' => TRUE, 
+			'#collapsed' => FALSE,
+		); 
+	}
+	
+  	return system_settings_form($form);
+}

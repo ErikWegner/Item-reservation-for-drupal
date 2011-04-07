@@ -57,14 +57,38 @@ function ir_admin() {
 		'#default_value' => $cta,
 	);	
 	
+	$cti = _content_type_info();
+	
 	foreach ($cta as $ctname) {
 		$nodeinfo = node_get_types('type', $ctname);
-		$form['ir_settings_' . $ctname] = array(
+		$p = 'ir_settings_' . $ctname;
+		$form[$p] = array(
 			'#type' => 'fieldset', 
 			'#title' => $nodeinfo->name, 
 			'#collapsible' => TRUE, 
 			'#collapsed' => FALSE,
 		); 
+		
+		$fields = $cti['content types'][$ctname]['fields'];
+		#dsm($cti['content types'][$ctname]['fields']);
+		$fieldoptions = array();
+		foreach ($fields as $k => $field) {
+			$fieldoptions[$k] = $field['widget']['label'];
+		}
+		#dsm($fieldoptions);
+		
+		if (count($fieldoptions)) {		
+			$form[$p][$p.'_field'] = array(
+				'#type' => 'select',
+				'#title' => t('Store status in this field'),
+				'#options' => $fieldoptions,
+				'#default_value' => variable_get($p.'_field', NULL)
+			);
+		} else {
+			$form[$p][$p.'_nfa'] = array(
+				'#value' => t("Please create a text cck field."),
+			);
+		}
 	}
 	
   	return system_settings_form($form);

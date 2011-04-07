@@ -1,6 +1,5 @@
 <?php
 
-
 /**
 * Valid permissions for this module
 * @return array An array of valid permissions for the asg module
@@ -115,13 +114,63 @@ function ir_admin() {
 
 function ir_form() {
 	$form = array();
-	$form['status'] = array('#value' => t('Status'));
-	$form['submit'] = array('#type' => 'submit', '#value' => t('Save'));
+	$form['status'] = array(
+		'#value' => t('Click to show the status'),
+		'#suffix'=>'<br />'
+	);
+	$form['submit'] = array(
+		'#type' => 'submit', 
+		'#value' => t('Reveal')
+	);
 	return $form;	
 } // function ir_form
 
 
 
+function ir_form_submit($form_id, $form_values) {
+	global $_SESSION;
+	$_SESSION['ir_action'] = 'reveal';
+} // function ir_form_submit
+
+
+
+function ir_formreservation() {
+	$f = 1;
+
+	$form = array();
+	$form['status'] = array(
+		'#value' => 'Reserviert oder auch nicht',
+		'#suffix' => '<br />'
+	);
+
+	$title = t('Would you like to reserve this item?');
+	if ($f) {
+		$title = t('Would you like to retract your reservation?');
+	}
+	$form['q'] = array('#value' => $title,'#suffix'=>' ');
+
+	$form['submit'] = array('#type' => 'submit', '#value' => t('Change'));
+	$form['nochange'] = array('#type' => 'submit', '#value' => t('No change'));
+	return $form;	
+} // function ir_form
+
+
+
+function ir_formreservation_submit($form_id, $form_values) {
+	global $_SESSION;
+	$_SESSION['ir_action'] = 'reveal';
+} // function ir_form_submit
+
+
+
 function ir_reservation_page($node) {
-	return "A";
+	$page_content = drupal_get_form('ir_form');
+	global $_SESSION;
+	dsm('4:'.$_SESSION['ir_action']);
+	if ($_SESSION['ir_action'] === 'reveal') {
+		$page_content = "Thank you.";
+		$page_content .= drupal_get_form('ir_formreservation');
+		$_SESSION['ir_action'] = 0;
+	}
+	return $page_content;
 } // function ir_reservation_page

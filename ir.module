@@ -152,25 +152,35 @@ function ir_formreservation() {
 	$form['submit'] = array('#type' => 'submit', '#value' => t('Change'));
 	$form['nochange'] = array('#type' => 'submit', '#value' => t('No change'));
 	return $form;	
-} // function ir_form
+} // function ir_formreservation 
 
 
 
 function ir_formreservation_submit($form_id, $form_values) {
-	global $_SESSION;
-	$_SESSION['ir_action'] = 'reveal';
-} // function ir_form_submit
+	dsm($form_values);
+	die();
+} // function ir_formreservation_submit
 
 
 
 function ir_reservation_page($node) {
-	$page_content = drupal_get_form('ir_form');
 	global $_SESSION;
 	dsm('4:'.$_SESSION['ir_action']);
-	if ($_SESSION['ir_action'] === 'reveal') {
-		$page_content = "Thank you.";
-		$page_content .= drupal_get_form('ir_formreservation');
-		$_SESSION['ir_action'] = 0;
+	
+	if (!$_SESSION['ir_action']) {
+		$page_content = drupal_get_form('ir_form');
 	}
+	
+	if ($_SESSION['ir_action'] === 'reveal') {
+		$page_content = drupal_get_form('ir_formreservation');
+		$_SESSION['ir_action'] = 'changeq';
+	}
+	
+	if ($_SESSION['ir_action'] === 'changeq') {
+		$page_content = drupal_get_form('ir_formreservation');
+		$_SESSION['ir_action'] = '';
+	}
+
+	
 	return $page_content;
 } // function ir_reservation_page

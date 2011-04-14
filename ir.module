@@ -222,14 +222,25 @@ function ir_form_submit($form_id, $form_values) {
 } // function ir_form_submit
 
 
+
 function ir_form_alter(&$form, &$form_state, $form_id) {
 	$ct = substr($form_id, 0, strpos($form_id, "_node_form"));
 	
 	if (in_array($ct, ir_get_enabled_content_types())) {
 		$field = variable_get('ir_settings_'.$ct.'_field', '');
 		if (isset($form[$field])) {
-			dsm($form[$field]);
 			unset($form[$field]);
 		}
 	}
-}
+} // function ir_form_alter
+
+
+
+function ir_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
+	$ct = $node->type;
+	
+	if ($op == "view" && in_array($ct, ir_get_enabled_content_types())) {
+		$field = variable_get('ir_settings_'.$ct.'_field', '');
+		unset($node->content[$field]);
+	}
+} // function ir_nodeapi

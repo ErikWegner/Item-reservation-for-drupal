@@ -24,8 +24,8 @@ function ir_menu() {
 
 	$items['node/%node/reservation'] = array(
 	    'title' => 'Reservation',
-	    'page callback' => 'ir_reservation_page',
-	    'page arguments' => array(1),
+	    'page callback' => 'drupal_get_form',
+	    'page arguments' => array('ir_form', 1),
 	    'access callback' => 'ir_access_display_status',
 	    'access arguments' => array(1),
 	    'weight' => 10,
@@ -94,12 +94,45 @@ function ir_admin() {
 		#dsm($fieldoptions);
 		
 		if (count($fieldoptions)) {		
+			
 			$form[$p][$p.'_field'] = array(
 				'#type' => 'select',
 				'#title' => t('Store status in this field'),
 				'#options' => $fieldoptions,
 				'#default_value' => variable_get($p.'_field', NULL)
 			);
+			
+			$form[$p][$p.'_t'] = array(
+				'#type' => 'textfield',
+				'#title' => t('Value for reserved item'),
+				'#default_value' => variable_get($p.'_t', t("reserved")),
+			);
+			
+			$form[$p][$p.'_f'] = array(
+				'#type' => 'textfield',
+				'#title' => t('Value for free (unreserved) item'),
+				'#default_value' => variable_get($p.'_f', t("not reserved")),
+			);
+			
+			$form[$p][$p.'_text'] = array(
+				'#type' => 'textfield',
+				'#title' => t('Text to display the reservation status'),
+				'#default_value' => variable_get($p.'_text', t("The item [title] is [field_CCKFIELDNAME-formatted]")),
+			);
+			
+			if (module_exists('token')) {
+				$form[$p][$p.'_token_help'] = array(
+					'#title' => t('Replacement patterns'),
+					'#type' => 'fieldset',
+					'#collapsible' => TRUE,
+					'#collapsed' => TRUE,
+					//      '#description' => t('Prefer raw-text replacements for text to avoid problems with HTML entities!'),
+   				);
+   				$form[$p][$p.'_token_help']['help'] = array(
+     				'#value' => theme('token_help', 'node'),
+      			);
+  			}
+			
 		} else {
 			$form[$p][$p.'_nfa'] = array(
 				'#value' => t("Please create a text cck field."),
@@ -112,75 +145,80 @@ function ir_admin() {
 
 
 
-function ir_form() {
+function ir_form($form_state, $node) {
 	$form = array();
-	$form['status'] = array(
-		'#value' => t('Click to show the status'),
-		'#suffix'=>'<br />'
-	);
-	$form['submit'] = array(
-		'#type' => 'submit', 
-		'#value' => t('Reveal')
-	);
+		
+	$type = $node->type;
+	$text = variable_get('ir_settings_'.$type.'_text', '');
+	
+	$field = variable_get('ir_settings_'.$type.'_field', '');
+	
+	if ($text && $field) {
+		
+		// if field is empty, put a value in there
+		$fieldvaluearray = $node->$field;
+		$fieldvalue = $fieldvaluearray[0]['value'];
+		
+		if (!$fieldvalue) {
+			$fieldvalue = variable_get('ir_settings_'.$type.'_f', t('not reserved'));
+			$fieldvaluearray[0]['value'] = $fieldvalue;
+			$node->$field = $fieldvaluearray;
+			node_save($node);
+		}
+		
+		$reserved = $fieldvalue == variable_get('ir_settings_'.$type.'_t',t('reserved'));
+		
+		$text = t($text);
+		$form['status'] = array(
+			'#value' => token_replace($text, 'node', $node),
+			'#suffix' => '<br />'
+		);
+		
+		$form['submit'] = array(
+			'#type' => 'submit', 
+			'#value' => $reserved ? t('Clear reservation') : t('Reserve it for me'),
+		);
+		
+		$form['ir_nid'] = array(
+			'#type' => 'hidden',
+			'#value' => $node->nid,
+		);
+
+	} else {
+		// module not configured!
+		$form['status'] = array(
+			'#value' => t('Please configure the module.'),
+			'#suffix'=> '<br />'. 
+				l('Settings', 'admin/settings/ir') . 
+				'<br />',
+		);
+	}
 	return $form;	
 } // function ir_form
 
 
 
 function ir_form_submit($form_id, $form_values) {
-	global $_SESSION;
-	$_SESSION['ir_action'] = 'reveal';
+	$node = node_load($form_values['values']['ir_nid']);
+	$field = variable_get('ir_settings_'.$node->type.'_field', '');
+	$fieldvaluearray = $node->$field;
+	$fieldvalue = $fieldvaluearray[0]['value'];
+	
+	// save value for later reuse
+	$newfieldvalue = variable_get('ir_settings_'.$type.'_t',t('reserved'));
+	
+	$reserved = $fieldvalue == $newfieldvalue;
+
+	if ($reserved) {
+		$newfieldvalue = variable_get('ir_settings_'.$type.'_f', t('not reserved'));
+		drupal_set_message(t("The item is no longer reserved."), 'warning');
+	} else {
+		drupal_set_message(t("The item is now reserved."));
+	}
+	
+	$fieldvaluearray[0]['value'] = $newfieldvalue;
+	$node->$field = $fieldvaluearray;
+	node_save($node);
 } // function ir_form_submit
 
 
-
-function ir_formreservation() {
-	$f = 1;
-
-	$form = array();
-	$form['status'] = array(
-		'#value' => 'Reserviert oder auch nicht',
-		'#suffix' => '<br />'
-	);
-
-	$title = t('Would you like to reserve this item?');
-	if ($f) {
-		$title = t('Would you like to retract your reservation?');
-	}
-	$form['q'] = array('#value' => $title,'#suffix'=>' ');
-
-	$form['submit'] = array('#type' => 'submit', '#value' => t('Change'));
-	$form['nochange'] = array('#type' => 'submit', '#value' => t('No change'));
-	return $form;	
-} // function ir_formreservation 
-
-
-
-function ir_formreservation_submit($form_id, $form_values) {
-	dsm($form_values);
-	die();
-} // function ir_formreservation_submit
-
-
-
-function ir_reservation_page($node) {
-	global $_SESSION;
-	dsm('4:'.$_SESSION['ir_action']);
-	
-	if (!$_SESSION['ir_action']) {
-		$page_content = drupal_get_form('ir_form');
-	}
-	
-	if ($_SESSION['ir_action'] === 'reveal') {
-		$page_content = drupal_get_form('ir_formreservation');
-		$_SESSION['ir_action'] = 'changeq';
-	}
-	
-	if ($_SESSION['ir_action'] === 'changeq') {
-		$page_content = drupal_get_form('ir_formreservation');
-		$_SESSION['ir_action'] = '';
-	}
-
-	
-	return $page_content;
-} // function ir_reservation_page

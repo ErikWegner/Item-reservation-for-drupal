@@ -174,10 +174,12 @@ function ir_form($form_state, $node) {
 			'#suffix' => '<br />'
 		);
 		
-		$form['submit'] = array(
-			'#type' => 'submit', 
-			'#value' => $reserved ? t('Clear reservation') : t('Reserve it for me'),
-		);
+		if (user_access('reserve item')) {
+			$form['submit'] = array(
+				'#type' => 'submit', 
+				'#value' => $reserved ? t('Clear reservation') : t('Reserve it for me'),
+			);
+		}
 		
 		$form['ir_nid'] = array(
 			'#type' => 'hidden',
@@ -199,6 +201,10 @@ function ir_form($form_state, $node) {
 
 
 function ir_form_submit($form_id, $form_values) {
+	if (!user_access('reserve item')) {
+		drupal_set_message(t("Permission denied."), 'error');
+		return;
+	}
 	$node = node_load($form_values['values']['ir_nid']);
 	$field = variable_get('ir_settings_'.$node->type.'_field', '');
 	$fieldvaluearray = $node->$field;

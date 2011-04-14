@@ -222,3 +222,14 @@ function ir_form_submit($form_id, $form_values) {
 } // function ir_form_submit
 
 
+function ir_form_alter(&$form, &$form_state, $form_id) {
+	$ct = substr($form_id, 0, strpos($form_id, "_node_form"));
+	
+	if (in_array($ct, ir_get_enabled_content_types())) {
+		$field = variable_get('ir_settings_'.$ct.'_field', '');
+		if (isset($form[$field])) {
+			dsm($form[$field]);
+			unset($form[$field]);
+		}
+	}
+}

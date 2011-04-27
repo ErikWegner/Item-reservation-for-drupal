@@ -1,6 +1,6 @@
 name = Item reservation
 description = Enables reservation of items
-core = 6.x
-version = 6.x-1.0
-dependencies[] = content
+core = 7.x
+version = 7.x-1.0
 dependencies[] = token
+configure = admin/settings/ir

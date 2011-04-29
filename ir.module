@@ -159,9 +159,9 @@ function ir_admin() {
 
 
 
-function ir_form($form_state, $node) {
+function ir_form($a, $form_state, $node) {
 	$form = array();
-		
+	dsm($node);
 	$type = $node->type;
 	$text = variable_get('ir_settings_'.$type.'_text', '');
 	
@@ -171,7 +171,8 @@ function ir_form($form_state, $node) {
 		
 		// if field is empty, put a value in there
 		$fieldvaluearray = $node->$field;
-		$fieldvalue = $fieldvaluearray[0]['value'];
+		if (count($fieldvaluearray) > 0)
+			$fieldvalue = $fieldvaluearray['und'][0]['value'];
 		
 		if (!$fieldvalue) {
 			$fieldvalue = variable_get('ir_settings_'.$type.'_f', t('not reserved'));
@@ -184,7 +185,7 @@ function ir_form($form_state, $node) {
 		
 		$text = t($text);
 		$form['status'] = array(
-			'#markup' => token_replace($text, 'node', $node),
+			'#markup' => token_replace($text, $node),
 			'#suffix' => '<br />'
 		);
 		

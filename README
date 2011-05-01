@@ -12,7 +12,7 @@ Create a content type that represents a gift item. E.g. create an image field, a
 
 Activate the ir module (this one).
 
-Go to admin/settings/ir and select the content type(s). After saving, configure the module for each content type:
+Go to admin/content/ir and select the content type(s). After saving, configure the module for each content type:
 
 * select the field which stores the status.
 * enter a value to be saved when someone reserves that item
@@ -20,3 +20,6 @@ Go to admin/settings/ir and select the content type(s). After saving, configure 
 * enter a text with tokens that shows the current status.
 
 Next, configure the permissions for the module by opening admin/user/permissions#module-ir. If you allow anonymous users to reserve items, you should enable the captcha-module and protect the reservation form. Open the captcha settings and add the form id "ir_form" and a captcha.
+
+When you enable taxonomy and create a custom vocabulary, consider to enable the private taxonomy feature: http://drupal.org/project/private_taxonomy
+ 

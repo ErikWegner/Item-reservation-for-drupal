@@ -167,7 +167,7 @@ function ir_form($form_state, $node) {
       node_save($node);
     }
     
-    $reserved = $fieldvalue == variable_get('ir_settings_' . $type . '_t',t('reserved'));
+    $reserved = $fieldvalue == variable_get('ir_settings_' . $type . '_t', t('reserved'));
     
     $text = t($text);
     $form['status'] = array(
@@ -213,7 +213,7 @@ function ir_form_submit($form_id, $form_values) {
   $fieldvalue = $fieldvaluearray[0]['value'];
   
   // save value for later reuse
-  $newfieldvalue = variable_get('ir_settings_' . $node->type . '_t',t('reserved'));
+  $newfieldvalue = variable_get('ir_settings_' . $node->type . '_t', t('reserved'));
   
   $reserved = $fieldvalue == $newfieldvalue;
 

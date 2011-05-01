@@ -211,12 +211,12 @@ function ir_form_submit($form_id, $form_values) {
 	$fieldvalue = $fieldvaluearray[0]['value'];
 	
 	// save value for later reuse
-	$newfieldvalue = variable_get('ir_settings_'.$type.'_t',t('reserved'));
+	$newfieldvalue = variable_get('ir_settings_'.$node->type.'_t',t('reserved'));
 	
 	$reserved = $fieldvalue == $newfieldvalue;
 
 	if ($reserved) {
-		$newfieldvalue = variable_get('ir_settings_'.$type.'_f', t('not reserved'));
+		$newfieldvalue = variable_get('ir_settings_'.$node->type.'_f', t('not reserved'));
 		drupal_set_message(t("The item is no longer reserved."), 'warning');
 	} else {
 		drupal_set_message(t("The item is now reserved."));

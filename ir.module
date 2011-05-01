@@ -133,7 +133,8 @@ function ir_admin() {
           );
         }
       
-    } else {
+    } 
+    else {
       $form[$p][$p . '_nfa'] = array(
         '#value' => t("Please create a text cck field."),
       );
@@ -186,7 +187,8 @@ function ir_form($form_state, $node) {
       '#value' => $node->nid,
     );
 
-  } else {
+  } 
+  else {
     // module not configured!
     $form['status'] = array(
       '#value' => t('Please configure the module.'),
@@ -218,7 +220,8 @@ function ir_form_submit($form_id, $form_values) {
   if ($reserved) {
     $newfieldvalue = variable_get('ir_settings_' . $node->type . '_f', t('not reserved'));
     drupal_set_message(t("The item is no longer reserved."), 'warning');
-  } else {
+  } 
+  else {
     drupal_set_message(t("The item is now reserved."));
   }
   

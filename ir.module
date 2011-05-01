@@ -95,46 +95,46 @@ function ir_admin() {
     
     if (count($fieldoptions)) {    
       
-      $form[$p][$p.'_field'] = array(
+      $form[$p][$p . '_field'] = array(
         '#type' => 'select',
         '#title' => t('Store status in this field'),
         '#options' => $fieldoptions,
-        '#default_value' => variable_get($p.'_field', NULL)
+        '#default_value' => variable_get($p . '_field', NULL)
       );
       
-      $form[$p][$p.'_t'] = array(
+      $form[$p][$p . '_t'] = array(
         '#type' => 'textfield',
         '#title' => t('Value for reserved item'),
-        '#default_value' => variable_get($p.'_t', t("reserved")),
+        '#default_value' => variable_get($p . '_t', t("reserved")),
       );
       
-      $form[$p][$p.'_f'] = array(
+      $form[$p][$p . '_f'] = array(
         '#type' => 'textfield',
         '#title' => t('Value for free (unreserved) item'),
-        '#default_value' => variable_get($p.'_f', t("not reserved")),
+        '#default_value' => variable_get($p . '_f', t("not reserved")),
       );
       
-      $form[$p][$p.'_text'] = array(
+      $form[$p][$p . '_text'] = array(
         '#type' => 'textfield',
         '#title' => t('Text to display the reservation status'),
-        '#default_value' => variable_get($p.'_text', t("The item [title] is [field_CCKFIELDNAME-formatted]")),
+        '#default_value' => variable_get($p . '_text', t("The item [title] is [field_CCKFIELDNAME-formatted]")),
       );
       
       if (module_exists('token')) {
-        $form[$p][$p.'_token_help'] = array(
+        $form[$p][$p . '_token_help'] = array(
           '#title' => t('Replacement patterns'),
           '#type' => 'fieldset',
           '#collapsible' => TRUE,
           '#collapsed' => TRUE,
           //    '#description' => t('Prefer raw-text replacements for text to avoid problems with HTML entities!'),
            );
-           $form[$p][$p.'_token_help']['help'] = array(
+           $form[$p][$p . '_token_help']['help'] = array(
            '#value' => theme('token_help', 'node'),
           );
         }
       
     } else {
-      $form[$p][$p.'_nfa'] = array(
+      $form[$p][$p . '_nfa'] = array(
         '#value' => t("Please create a text cck field."),
       );
     }
@@ -149,9 +149,9 @@ function ir_form($form_state, $node) {
   $form = array();
     
   $type = $node->type;
-  $text = variable_get('ir_settings_'.$type.'_text', '');
+  $text = variable_get('ir_settings_' . $type . '_text', '');
   
-  $field = variable_get('ir_settings_'.$type.'_field', '');
+  $field = variable_get('ir_settings_' . $type . '_field', '');
   
   if ($text && $field) {
     
@@ -160,13 +160,13 @@ function ir_form($form_state, $node) {
     $fieldvalue = $fieldvaluearray[0]['value'];
     
     if (!$fieldvalue) {
-      $fieldvalue = variable_get('ir_settings_'.$type.'_f', t('not reserved'));
+      $fieldvalue = variable_get('ir_settings_' . $type . '_f', t('not reserved'));
       $fieldvaluearray[0]['value'] = $fieldvalue;
       $node->$field = $fieldvaluearray;
       node_save($node);
     }
     
-    $reserved = $fieldvalue == variable_get('ir_settings_'.$type.'_t',t('reserved'));
+    $reserved = $fieldvalue == variable_get('ir_settings_' . $type . '_t',t('reserved'));
     
     $text = t($text);
     $form['status'] = array(
@@ -206,17 +206,17 @@ function ir_form_submit($form_id, $form_values) {
     return;
   }
   $node = node_load($form_values['values']['ir_nid']);
-  $field = variable_get('ir_settings_'.$node->type.'_field', '');
+  $field = variable_get('ir_settings_' . $node->type . '_field', '');
   $fieldvaluearray = $node->$field;
   $fieldvalue = $fieldvaluearray[0]['value'];
   
   // save value for later reuse
-  $newfieldvalue = variable_get('ir_settings_'.$node->type.'_t',t('reserved'));
+  $newfieldvalue = variable_get('ir_settings_' . $node->type . '_t',t('reserved'));
   
   $reserved = $fieldvalue == $newfieldvalue;
 
   if ($reserved) {
-    $newfieldvalue = variable_get('ir_settings_'.$node->type.'_f', t('not reserved'));
+    $newfieldvalue = variable_get('ir_settings_' . $node->type . '_f', t('not reserved'));
     drupal_set_message(t("The item is no longer reserved."), 'warning');
   } else {
     drupal_set_message(t("The item is now reserved."));
@@ -233,7 +233,7 @@ function ir_form_alter(&$form, &$form_state, $form_id) {
   $ct = substr($form_id, 0, strpos($form_id, "_node_form"));
   
   if (in_array($ct, ir_get_enabled_content_types())) {
-    $field = variable_get('ir_settings_'.$ct.'_field', '');
+    $field = variable_get('ir_settings_' . $ct . '_field', '');
     if (isset($form[$field])) {
       unset($form[$field]);
     }
@@ -246,7 +246,7 @@ function ir_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
   $ct = $node->type;
   
   if ($op == "view" && in_array($ct, ir_get_enabled_content_types())) {
-    $field = variable_get('ir_settings_'.$ct.'_field', '');
+    $field = variable_get('ir_settings_' . $ct . '_field', '');
     unset($node->content[$field]);
   }
 } // function ir_nodeapi

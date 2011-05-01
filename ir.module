@@ -14,7 +14,7 @@ function ir_menu() {
 
   $items = array();
 
-  $items['admin/settings/ir'] = array(
+  $items['admin/content/ir'] = array(
     'title' => 'Item reservation',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('ir_admin'),

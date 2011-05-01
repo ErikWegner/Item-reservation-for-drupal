@@ -192,7 +192,7 @@ function ir_form($form_state, $node) {
     // module not configured!
     $form['status'] = array(
       '#value' => t('Please configure the module.'),
-      '#suffix'=> '<br />'. 
+      '#suffix' => '<br />'. 
         l('Settings', 'admin/settings/ir') . 
         '<br />',
     );

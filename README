@@ -21,5 +21,5 @@ Go to admin/content/ir and select the content type(s). After saving, configure t
 
 Next, configure the permissions for the module by opening admin/user/permissions#module-ir. If you allow anonymous users to reserve items, you should enable the captcha-module and protect the reservation form. Open the captcha settings and add the form id "ir_form" and a captcha.
 
-When you enable taxonomy and create a custom vocabulary, consider to enable the private taxonomy feature: http://drupal.org/project/private_taxonomy
+When you enable taxonomy and create a custom vocabulary, consider to enable the private taxonomy feature: http://drupal.org/project/private_taxonomy, but use the version from here: http://drupal.org/node/384846#comment-2175382
  

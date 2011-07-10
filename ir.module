@@ -1,267 +1,289 @@
 <?php
 
 /**
-* Valid permissions for this module
-* @return array An array of valid permissions for the asg module
-*/
+ * Valid permissions for this module
+ * @return array An array of valid permissions for the asg module
+ */
 function ir_permission() {
-	return array(
-    'display status' => array(
-      'title' => t('Display the reservation status'), 
-      'description' => t('Show the tab for displaying the current reservation status.'),
-    ),
-    'reserve item' => array(
-      'title' => t('Reserve an item'), 
-      'description' => t('Change the reservation status for an item.'),
-    ),
-    'administer settings' => array(
-      'title' => t('Administer item reservation module'), 
-      'description' => t('Perform administration tasks for item reservation module.'),
-    ),
-  );
-} // function ir_perm()
+    return array(
+        'display status' => array(
+            'title' => t('Display the reservation status'),
+            'description' => t('Show the tab for displaying the current reservation status.'),
+        ),
+        'reserve item' => array(
+            'title' => t('Reserve an item'),
+            'description' => t('Change the reservation status for an item.'),
+        ),
+        'administer settings' => array(
+            'title' => t('Administer item reservation module'),
+            'description' => t('Perform administration tasks for item reservation module.'),
+        ),
+    );
+}
 
-
+// function ir_perm()
 
 function ir_menu() {
 
-	$items = array();
+    $items = array();
 
-	$items['admin/settings/ir'] = array(
-		'title' => 'Item reservation',
-		'page callback' => 'drupal_get_form',
-		'page arguments' => array('ir_admin'),
-		'access arguments' => array('administer settings'),
-	    'type' => MENU_NORMAL_ITEM,
-	);
+    $items['admin/settings/ir'] = array(
+        'title' => 'Item reservation',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('ir_admin'),
+        'access arguments' => array('administer settings'),
+        'type' => MENU_NORMAL_ITEM,
+    );
 
-	$items['node/%node/reservation'] = array(
-	    'title' => 'Reservation',
-	    'page callback' => 'drupal_get_form',
-	    'page arguments' => array('ir_form', 1),
-	    'access callback' => 'ir_access_display_status',
-	    'access arguments' => array(1),
-	    'weight' => 10,
-	    'type' => MENU_LOCAL_TASK,
-	);
-  
-	return $items;
+    $items['node/%node/reservation'] = array(
+        'title' => 'Reservation',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('ir_form', 1),
+        'access callback' => 'ir_access_display_status',
+        'access arguments' => array(1),
+        'weight' => 10,
+        'type' => MENU_LOCAL_TASK,
+    );
 
-} // function ir_menu()
+    return $items;
+}
+
+// function ir_menu()
 
 
 
 function ir_get_enabled_content_types($in_array = NULL) {
-	$a = array();
-	if (!$in_array)
-		$in_array = variable_get('ir_contenttypes', array());
-	foreach ($in_array as $k => $v) {
-		if ($v) $a[$k] = $v;
-	}
-	return $a;
-} // function ir_get_enabled_content_types
+    $a = array();
+    if (!$in_array)
+        $in_array = variable_get('ir_contenttypes', array());
+    foreach ($in_array as $k => $v) {
+        if ($v)
+            $a[$k] = $v;
+    }
+    return $a;
+}
+
+// function ir_get_enabled_content_types
 
 
 
 function ir_access_display_status($node) {
-	$cta = ir_get_enabled_content_types();
-	if (!in_array($node->type, $cta)) {
-		return FALSE;
-	}
-	
-	return user_access('display status');	
-} // function ir_access_display_status
+    $cta = ir_get_enabled_content_types();
+    if (!in_array($node->type, $cta)) {
+        return FALSE;
+    }
+
+    return user_access('display status');
+}
+
+// function ir_access_display_status
 
 
 
 function ir_admin() {
-	$form = array();
+    $form = array();
 
-	$cta = ir_get_enabled_content_types();
-	
-	$form['ir_contenttypes'] = array(
-		'#type' => 'checkboxes',
-		'#title' => t('Content types'),
-		'#options' => node_type_get_names(),
-		'#default_value' => $cta,
-	);	
-	
-	$cti = field_info_bundles();
-	
-	foreach ($cta as $ctname) {
-		$nodeinfo = node_type_get_type($ctname);
-		$p = 'ir_settings_' . $ctname;
-		$form[$p] = array(
-			'#type' => 'fieldset', 
-			'#title' => $nodeinfo->name, 
-			'#collapsible' => TRUE, 
-			'#collapsed' => FALSE,
-		); 
-		
-		$fieldoptions = array();
-		$fieldsinfo = field_info_instances('node', $ctname);
-		foreach ($fieldsinfo as $k => $field) {
-			#dsm(field_info_instance('node', $k, $ctname));
-			if ($field['widget']['module'] == 'text') $fieldoptions[$k] = $field['label'];
-		}
-		#dsm($fieldoptions);
-		
-		if (count($fieldoptions)) {		
-			
-			$form[$p][$p.'_field'] = array(
-				'#type' => 'select',
-				'#title' => t('Store status in this field'),
-				'#options' => $fieldoptions,
-				'#default_value' => variable_get($p.'_field', NULL)
-			);
-			
-			$form[$p][$p.'_t'] = array(
-				'#type' => 'textfield',
-				'#title' => t('Value for reserved item'),
-				'#default_value' => variable_get($p.'_t', t("reserved")),
-			);
-			
-			$form[$p][$p.'_f'] = array(
-				'#type' => 'textfield',
-				'#title' => t('Value for free (unreserved) item'),
-				'#default_value' => variable_get($p.'_f', t("not reserved")),
-			);
-			
-			$form[$p][$p.'_text'] = array(
-				'#type' => 'textfield',
-				'#title' => t('Text to display the reservation status'),
-				'#default_value' => variable_get($p.'_text', t("The item [title] is [field_CCKFIELDNAME-formatted]")),
-			);
-			
-			if (module_exists('token')) {
-				$form[$p][$p.'_token_help'] = array(
-					'#title' => t('Replacement patterns'),
-					'#type' => 'fieldset',
-					'#collapsible' => TRUE,
-					'#collapsed' => TRUE,
-					//      '#description' => t('Prefer raw-text replacements for text to avoid problems with HTML entities!'),
-   				);
-   				$form[$p][$p.'_token_help']['help'] = array(
-     				'#markup' => theme('token_help', 'node'),
-      			);
-  			}
-			
-		} else {
-			$form[$p][$p.'_nfa'] = array(
-				'#markup' => t("Please create a text cck field."),
-			);
-		}
-		
-	}
-	
-  	return system_settings_form($form);
-} // function ir_admin
+    $cta = ir_get_enabled_content_types();
+
+    $form['ir_contenttypes'] = array(
+        '#type' => 'checkboxes',
+        '#title' => t('Content types'),
+        '#options' => node_type_get_names(),
+        '#default_value' => $cta,
+    );
+
+    $cti = field_info_bundles();
+
+    foreach ($cta as $ctname) {
+        $nodeinfo = node_type_get_type($ctname);
+        $p = 'ir_settings_' . $ctname;
+        $form[$p] = array(
+            '#type' => 'fieldset',
+            '#title' => $nodeinfo->name,
+            '#collapsible' => TRUE,
+            '#collapsed' => FALSE,
+        );
+
+        $fieldoptions = array();
+        $fieldsinfo = field_info_instances('node', $ctname);
+        foreach ($fieldsinfo as $k => $field) {
+            #dsm(field_info_instance('node', $k, $ctname));
+            if ($field['widget']['module'] == 'text')
+                $fieldoptions[$k] = $field['label'];
+        }
+        #dsm($fieldoptions);
+
+        if (count($fieldoptions)) {
+
+            $form[$p][$p . '_field'] = array(
+                '#type' => 'select',
+                '#title' => t('Store status in this field'),
+                '#options' => $fieldoptions,
+                '#default_value' => variable_get($p . '_field', NULL)
+            );
+
+            $form[$p][$p . '_t'] = array(
+                '#type' => 'textfield',
+                '#title' => t('Value for reserved item'),
+                '#default_value' => variable_get($p . '_t', t("reserved")),
+            );
+
+            $form[$p][$p . '_f'] = array(
+                '#type' => 'textfield',
+                '#title' => t('Value for free (unreserved) item'),
+                '#default_value' => variable_get($p . '_f', t("not reserved")),
+            );
+
+            $form[$p][$p . '_text'] = array(
+                '#type' => 'textfield',
+                '#title' => t('Text to display the reservation status'),
+                '#default_value' => variable_get($p . '_text', t("The item [title] is [field_CCKFIELDNAME-formatted].")),
+            );
+
+            if (module_exists('token')) {
+                $form[$p][$p . '_token_help'] = array(
+                    '#title' => t('Replacement patterns'),
+                    '#type' => 'fieldset',
+                    '#collapsible' => TRUE,
+                    '#collapsed' => TRUE,
+                        //      '#description' => t('Prefer raw-text replacements for text to avoid problems with HTML entities!'),
+                );
+                //FIXME: empty output from token module
+                $form[$p][$p . '_token_help']['help'] = array(
+                    '#markup' => theme('token_help', 'node'),
+                );
+            }
+        } else {
+            $form[$p][$p . '_nfa'] = array(
+                '#markup' => t("Please create a text cck field."),
+            );
+        }
+    }
+
+    return system_settings_form($form);
+}
+
+// function ir_admin
 
 
 
 function ir_form($a, $form_state, $node) {
-	$form = array();
-	dsm($node);
-	$type = $node->type;
-	$text = variable_get('ir_settings_'.$type.'_text', '');
-	
-	$field = variable_get('ir_settings_'.$type.'_field', '');
-	
-	if ($text && $field) {
-		
-		// if field is empty, put a value in there
-		$fieldvaluearray = $node->$field;
-		if (count($fieldvaluearray) > 0)
-			$fieldvalue = $fieldvaluearray['und'][0]['value'];
-		
-		if (!$fieldvalue) {
-			$fieldvalue = variable_get('ir_settings_'.$type.'_f', t('not reserved'));
-			$fieldvaluearray[0]['value'] = $fieldvalue;
-			$node->$field = $fieldvaluearray;
-			node_save($node);
-		}
-		
-		$reserved = $fieldvalue == variable_get('ir_settings_'.$type.'_t',t('reserved'));
-		
-		$text = t($text);
-		$form['status'] = array(
-			'#markup' => token_replace($text, $node),
-			'#suffix' => '<br />'
-		);
-		
-		if (user_access('reserve item')) {
-			$form['submit'] = array(
-				'#type' => 'submit', 
-				'#value' => $reserved ? t('Clear reservation') : t('Reserve it for me'),
-			);
-		}
-		
-		$form['ir_nid'] = array(
-			'#type' => 'hidden',
-			'#value' => $node->nid,
-		);
+    $form = array();
+    #dsm($node);
+    $type = $node->type;
+    $text = variable_get('ir_settings_' . $type . '_text', '');
 
-	} else {
-		// module not configured!
-		$form['status'] = array(
-			'#markup' => t('Please configure the module.'),
-			'#suffix'=> '<br />'. 
-				l('Settings', 'admin/settings/ir') . 
-				'<br />',
-		);
-	}
-	return $form;	
-} // function ir_form
+    $field = variable_get('ir_settings_' . $type . '_field', '');
+
+    if ($text && $field) {
+
+        // if field is empty, put a value in there
+        $fieldvaluearray = $node->$field;
+        $fieldvalue=0;
+        if (count($fieldvaluearray) > 0)
+            //FIXME: $node->language correct?
+            $fieldvalue = $fieldvaluearray[$node->language][0]['value'];
+        
+        if (!$fieldvalue) {
+            $fieldvalue = variable_get('ir_settings_' . $type . '_f', t('not reserved'));
+            $fieldvaluearray[0]['value'] = $fieldvalue;
+            $node->$field = $fieldvaluearray;
+            node_save($node);
+        }
+
+        $reserved = $fieldvalue == variable_get('ir_settings_' . $type . '_t', t('reserved'));
+
+        $text = t($text);
+        $form['status'] = array(
+            '#markup' => token_replace($text, array('node' => $node)),
+            '#suffix' => '<br />'
+        );
+
+        if (user_access('reserve item')) {
+            $form['submit'] = array(
+                '#type' => 'submit',
+                '#value' => $reserved ? t('Clear reservation') : t('Reserve it for me'),
+            );
+        }
+
+        $form['ir_nid'] = array(
+            '#type' => 'hidden',
+            '#value' => $node->nid,
+        );
+    } else {
+        // module not configured!
+        $form['status'] = array(
+            '#markup' => t('Please configure the module.'),
+            '#suffix' => '<br />' .
+            l('Settings', 'admin/settings/ir') .
+            '<br />',
+        );
+    }
+    return $form;
+}
+
+// function ir_form
 
 
 
 function ir_form_submit($form_id, $form_values) {
-	if (!user_access('reserve item')) {
-		drupal_set_message(t("Permission denied."), 'error');
-		return;
-	}
-	$node = node_load($form_values['values']['ir_nid']);
-	$field = variable_get('ir_settings_'.$node->type.'_field', '');
-	$fieldvaluearray = $node->$field;
-	$fieldvalue = $fieldvaluearray[0]['value'];
-	
-	// save value for later reuse
-	$newfieldvalue = variable_get('ir_settings_'.$type.'_t',t('reserved'));
-	
-	$reserved = $fieldvalue == $newfieldvalue;
+    if (!user_access('reserve item')) {
+        drupal_set_message(t("Permission denied."), 'error');
+        return;
+    }
+    $node = node_load($form_values['values']['ir_nid']);
+    $field = variable_get('ir_settings_' . $node->type . '_field', '');
+    $fieldvaluearray = $node->$field;
+    if (empty ($fieldvaluearray)) {
+        $fieldvaluearray[0] = array('value' => '');
+    }
+    //FIXME: [$node->language] correct?
+    $fieldvalue = $fieldvaluearray[$node->language][0]['value'];
 
-	if ($reserved) {
-		$newfieldvalue = variable_get('ir_settings_'.$type.'_f', t('not reserved'));
-		drupal_set_message(t("The item is no longer reserved."), 'warning');
-	} else {
-		drupal_set_message(t("The item is now reserved."));
-	}
-	
-	$fieldvaluearray[0]['value'] = $newfieldvalue;
-	$node->$field = $fieldvaluearray;
-	node_save($node);
-} // function ir_form_submit
+    // save value for later reuse
+    $newfieldvalue = variable_get('ir_settings_' . $node->type . '_t', t('reserved'));
+
+    $reserved = $fieldvalue == $newfieldvalue;
+
+    if ($reserved) {
+        $newfieldvalue = variable_get('ir_settings_' . $node->type . '_f', t('not reserved'));
+        drupal_set_message(t("The item is no longer reserved."), 'warning');
+    } else {
+        drupal_set_message(t("The item is now reserved."));
+    }
+
+    //FIXME: [$node->language] correct?
+    $fieldvaluearray[$node->language][0]['value'] = $newfieldvalue;
+    $node->$field = $fieldvaluearray;
+    node_save($node);
+}
+
+// function ir_form_submit
 
 
 
 function ir_form_alter(&$form, &$form_state, $form_id) {
-	$ct = substr($form_id, 0, strpos($form_id, "_node_form"));
-	
-	if (in_array($ct, ir_get_enabled_content_types())) {
-		$field = variable_get('ir_settings_'.$ct.'_field', '');
-		if (isset($form[$field])) {
-			unset($form[$field]);
-		}
-	}
-} // function ir_form_alter
+    $ct = substr($form_id, 0, strpos($form_id, "_node_form"));
+
+    if (in_array($ct, ir_get_enabled_content_types())) {
+        $field = variable_get('ir_settings_' . $ct . '_field', '');
+        if (isset($form[$field])) {
+            unset($form[$field]);
+        }
+    }
+}
+
+// function ir_form_alter
 
 
 
 function ir_node_view($node, $view_mode, $langcode) {
-	$ct = $node->type;
-	
-	if (in_array($ct, ir_get_enabled_content_types())) {
-		$field = variable_get('ir_settings_'.$ct.'_field', '');
-		unset($node->content[$field]);
-	}
-} // function ir_node_view
+    $ct = $node->type;
+
+    if (in_array($ct, ir_get_enabled_content_types())) {
+        $field = variable_get('ir_settings_' . $ct . '_field', '');
+        unset($node->content[$field]);
+    }
+}
+
+// function ir_node_view

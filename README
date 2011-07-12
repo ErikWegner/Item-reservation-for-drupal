@@ -12,11 +12,35 @@ Create a content type that represents a gift item. E.g. create an image field, a
 
 Activate the ir module (this one).
 
-Go to admin/settings/ir and select the content type(s). After saving, configure the module for each content type:
+Go to admin/structure/ir and select the content type(s). After saving, configure the module for each content type:
 
 * select the field which stores the status.
 * enter a value to be saved when someone reserves that item
 * enter a value that should be saved when no one has reserved it
-* enter a text with tokens that shows the current status.
+* If you like to use a custom breadcrumb path, insert the code snippet into the field. The field will only be shown, if you enable the PHP Filter module.
 
 Next, configure the permissions for the module by opening admin/user/permissions#module-ir. If you allow anonymous users to reserve items, you should enable the captcha-module and protect the reservation form. Open the captcha settings and add the form id "ir_form" and a captcha.
+
+
+Breadcrumb code snippet:
+========================
+
+The following code can be inserted into the field "Custom breadcrumb path". It works together with a view (http://drupal.org/project/views) and an argument to filter the list for a certain user (personal wish list).
+
+<?php
+
+$mgi = menu_get_item();
+$path = $mgi['href'];
+
+$node = node_load(arg(1));
+$user = user_load($node->uid);
+
+// Build Breadcrumbs
+$breadcrumb = array();
+$breadcrumb[] = l('Home', '<front>');
+$breadcrumb[] = l('Wishlist for ' . $user->name , 'wishlist/'.$user->name);
+$breadcrumb[] = l(drupal_get_title(), base_path() . $path); // Link to current URL
+
+// Set Breadcrumbs
+drupal_set_breadcrumb($breadcrumb);
+?>

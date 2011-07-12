@@ -68,6 +68,17 @@ function ir_get_enabled_content_types($in_array = NULL) {
 
 
 
+function _ir_do_breadcrumb($contenttype) {
+    $breadcrumbcode = variable_get('ir_settings_' . $contenttype . '_breadcrumb_php', '');
+    if ($breadcrumbcode && module_exists('php')) {
+        php_eval($breadcrumbcode);
+    }
+}
+
+// function _ir_do_breadcrumb
+
+
+
 function ir_access_display_status($node) {
     $cta = ir_get_enabled_content_types();
     if (!in_array($node->type, $cta)) {
@@ -136,6 +147,18 @@ function ir_admin() {
                 '#default_value' => variable_get($p . '_f', t("The item [node:title] is not reserved.")),
                 '#description' => t('Hint: use [node:title] to insert the current item\'s title'),
             );
+            if (module_exists('php')) {
+                $form[$p][$p . '_breadcrumb_php'] = array(
+                    '#type' => 'textarea',
+                    '#title' => t('Custom breadcrumb path'),
+                    '#default_value' => variable_get($p . '_breadcrumb_php', ''),
+                    '#description' => t('Optional. Enter PHP-Code to create your custom breadcrumb menu. An example can be found at <a href="http://api.drupal.org/api/drupal/includes--common.inc/function/drupal_set_breadcrumb/6#comment-1353">http://api.drupal.org/api/drupal/includes--common.inc/function/drupal_set_breadcrumb/6#comment-1353</a>.'),
+                );
+            } else {
+                $form[$p][$p.'_no_php'] = array (
+                    '#markup' => t("Enable the PHP Filter module if you would like to change the breadcrumb path."),
+                );
+            }
         } else {
             $form[$p][$p . '_nfa'] = array(
                 '#markup' => t("Please create a text cck field."),
@@ -192,6 +215,7 @@ function ir_form($a, $form_state, $node) {
             '#type' => 'hidden',
             '#value' => $node->nid,
         );
+        _ir_do_breadcrumb($type);
     } else {
         // module not configured!
         $form['status'] = array(
@@ -266,6 +290,7 @@ function ir_node_view($node, $view_mode, $langcode) {
     if (in_array($ct, ir_get_enabled_content_types())) {
         $field = variable_get('ir_settings_' . $ct . '_field', '');
         unset($node->content[$field]);
+        if ($view_mode != "teaser") _ir_do_breadcrumb($ct);
     }
 }
 

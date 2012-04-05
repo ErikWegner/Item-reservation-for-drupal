@@ -54,7 +54,6 @@ function _ir_do_breadcrumb($contenttype) {
     $breadcrumbcode = variable_get('ir_settings_' . $contenttype . '_breadcrumb_php', '');
     if ($breadcrumbcode) {
         drupal_eval($breadcrumbcode);
-        #dsm(menu_get_item());
     }
 }
 
@@ -250,14 +249,24 @@ function ir_form_alter(&$form, &$form_state, $form_id) {
     $ct = substr($form_id, 0, strpos($form_id, "_node_form"));
 
     if (in_array($ct, ir_get_enabled_content_types())) {
-        $field = variable_get('ir_settings_' . $ct . '_field', '');
-        if (isset($form[$field])) {
-            unset($form[$field]);
-        }
+        $form['#after_build'][] = 'ir_hide_field';
     }
+    dpm($form);
 }
 
 // function ir_form_alter
+
+function ir_hide_field($form, &$form_state) {
+    $form_id = $form['form_id']['#value'];
+    $ct = substr($form_id, 0, strpos($form_id, "_node_form"));
+    $field = variable_get('ir_settings_' . $ct . '_field', '');
+    if (isset($form[$field])) {
+        $form[$field]['#access'] = false;
+    }
+    return $form;
+}
+
+// function ir_hide_field
 
 function ir_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
     $ct = $node->type;

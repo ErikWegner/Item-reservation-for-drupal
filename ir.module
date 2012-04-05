@@ -251,7 +251,6 @@ function ir_form_alter(&$form, &$form_state, $form_id) {
     if (in_array($ct, ir_get_enabled_content_types())) {
         $form['#after_build'][] = 'ir_hide_field';
     }
-    dpm($form);
 }
 
 // function ir_form_alter

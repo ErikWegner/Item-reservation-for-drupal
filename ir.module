@@ -180,6 +180,8 @@ function ir_form($a, $form_state, $node) {
 
     $field = variable_get('ir_settings_' . $type . '_field', '');
 
+    $form_state['no_cache'] = TRUE;
+
     if ($text && $field) {
 
         // if field is empty, put a value in there
@@ -261,6 +263,7 @@ function ir_form_submit($form_id, $form_values) {
     $fieldvaluearray[$node->language][0]['value'] = $newfieldvalue;
     $node->$field = $fieldvaluearray;
     node_save($node);
+    cache_clear_all('form_'. $_POST['form_build_id'], 'cache_form');
 }
 
 // function ir_form_submit

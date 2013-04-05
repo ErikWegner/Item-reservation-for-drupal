@@ -176,13 +176,12 @@ function ir_admin() {
 function ir_form($a, $form_state, $node) {
     $form = array();
     $type = $node->type;
-    $text = variable_get('ir_settings_' . $type . '_text', '');
 
     $field = variable_get('ir_settings_' . $type . '_field', '');
 
     $form_state['no_cache'] = TRUE;
 
-    if ($text && $field) {
+    if ($field) {
 
         // if field is empty, put a value in there
         $fieldvaluearray = $node->$field;
@@ -200,7 +199,6 @@ function ir_form($a, $form_state, $node) {
 
         $reserved = $fieldvalue == variable_get('ir_settings_' . $type . '_t', t('reserved'));
 
-        $text = t($text);
         $form['status'] = array(
             '#markup' => token_replace($fieldvalue, array('node' => $node)),
             '#suffix' => '<br />'

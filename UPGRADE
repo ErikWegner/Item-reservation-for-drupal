@@ -1,0 +1,7 @@
+Upgrading from ir-7.x-1.x to ir-7.x-2.x:
+
+    - The version 7.1-1.x uses a cck field to store the reservation status. This
+      is changed from 7.1-2.x to be a separate database table now. If you update
+      the module, you have to manually transfer all reservations from the field
+      to the new structure by reserving each item again. Afterwards you should
+      remove the field. 

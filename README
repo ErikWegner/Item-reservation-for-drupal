@@ -3,18 +3,17 @@ This module adds a reservation function to nodes. This serves as a wish list or 
 Dependencies:
 =============
 
-This module depence on the token and the content (cck) module.
+This module depence on the token module.
 
 How to use:
 ===========
 
-Create a content type that represents a gift item. E.g. create an image field, a link to a shopping url, etc. Most important, create a text field that stores the reservation status.
+Create a content type that represents a gift item. E.g. create an image field, a link to a shopping url, etc.
 
 Activate the ir module (this one).
 
 Go to admin/structure/ir and select the content type(s). After saving, configure the module for each content type:
 
-* select the field which stores the status.
 * enter a value to be saved when someone reserves that item
 * enter a value that should be saved when no one has reserved it
 * If you like to use a custom breadcrumb path, insert the code snippet into the field. The field will only be shown, if you enable the PHP Filter module.

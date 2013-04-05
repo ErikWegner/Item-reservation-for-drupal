@@ -1,0 +1,37 @@
+<?php
+
+/**
+ * @file
+ * Install, update, and uninstall functions for the dass module.
+ */
+function ir_schema() {
+  $schema['itemreservation'] = array(
+    'description' => 'Reserved items.',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Serial id',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'size' => 'big',
+        'not null' => TRUE,
+      ),
+      'nid' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'The {node}.nid to which this reservation belongs.',
+      ),
+      'status' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+        'description' => 'The reservation status of a node. (0 = Not reserved, 1 = Reserved)',
+      ),
+    ),
+    'primary key' => array('id'),
+  );
+
+  return $schema;
+}

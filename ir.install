@@ -35,3 +35,10 @@ function ir_schema() {
 
   return $schema;
 }
+
+/**
+ *  Create table for version 7.x-2.x 
+ */
+function ir_update_7200() {
+  db_create_table('itemreservation', drupal_get_schema_unprocessed('ir', 'itemreservation'));
+}

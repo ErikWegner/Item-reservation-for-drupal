@@ -91,8 +91,7 @@ function _ir_query_result($node_id) {
 function _ir_node_is_reserved($result) {
   if (count($result) > 0) {
     $reserved = $result['status'] == '1';
-  }
-  else {
+  } else {
     $reserved = FALSE;
   }
 
@@ -156,8 +155,7 @@ function ir_admin() {
         '#default_value' => variable_get($p . '_breadcrumb_php', ''),
         '#description' => t('Optional. Enter PHP-Code to create your custom breadcrumb menu. An example can be found at <a href="http://api.drupal.org/api/drupal/includes--common.inc/function/drupal_set_breadcrumb/6#comment-1353">http://api.drupal.org/api/drupal/includes--common.inc/function/drupal_set_breadcrumb/6#comment-1353</a>.'),
       );
-    }
-    else {
+    } else {
       $form[$p][$p . '_no_php'] = array(
         '#markup' => t('Enable the PHP Filter module if you would like to change the breadcrumb path.'),
       );
@@ -174,19 +172,12 @@ function ir_admin() {
 function ir_form($a, $form_state, $node) {
   $form = array();
   $type = $node->type;
-
-  $form_state['no_cache'] = TRUE;
-
   $reserved = _ir_node_is_reserved(_ir_query_result($node->nid));
 
-  $text0 = variable_get('ir_settings_' . $type . '_0', 'Not reserved');
-  $text1 = variable_get('ir_settings_' . $type . '_1', 'Reserved');
-
-  $statustext = t($reserved ? $text1 : $text0);
-
   $form['ir_status'] = array(
-    '#markup' => token_replace($statustext, array('node' => $node)),
-    '#suffix' => '<br />'
+    '#markup' => _ir_status_markup($reserved, $node),
+    '#prefix' => '<div id="irbox">',
+    '#suffix' => '</div>',
   );
 
   if (user_access('reserve item')) {
@@ -197,7 +188,12 @@ function ir_form($a, $form_state, $node) {
 
     $form['submit'] = array(
       '#type' => 'submit',
-      '#value' => $reserved ? t('Clear reservation') : t('Reserve it for me'),
+      '#value' => _ir_button_value($reserved),
+      '#prefix' => '<div id="irbutton">',
+      '#suffix' => '</div>',
+      '#ajax' => array(
+        'callback' => 'ir_ajaxsubmit_callback',
+      ),
     );
   }
 
@@ -208,7 +204,23 @@ function ir_form($a, $form_state, $node) {
 
 // function ir_form
 
+function ir_ajaxsubmit_callback($form, $form_state) {
+  $node = node_load($form_state['values']['ir_nid']);
+  $reserved = _ir_node_is_reserved(_ir_query_result($node->nid));
+  
+  $element = $form['ir_status'];
+  $element['#markup'] = _ir_status_markup($reserved, $node);
+  $button = $form['submit'];
+  $button['#value'] = _ir_button_value($reserved);
 
+  return array(
+    '#type' => 'ajax',
+    '#commands' => array(
+      ajax_command_replace("#irbox", render($element)),
+      ajax_command_replace("#irbutton", render($button))
+    )
+  );
+}
 
 function ir_form_submit($form_id, $form_values) {
   if (!user_access('reserve item')) {
@@ -222,12 +234,32 @@ function ir_form_submit($form_id, $form_values) {
       'nid' => $form_values['values']['ir_nid'],
       'status' => 0,
     );
+    $insert = TRUE;
+  } else {
+    $insert = FALSE;
   }
 
   $result['status'] = _ir_node_is_reserved($result) ? 0 : 1;
 
-  drupal_write_record('itemreservation', $result, array('id'));
+  drupal_write_record('itemreservation', $result, $insert ? array() : array('id'));
+  cache_clear_all('form_' . $form['#build_id'], 'cache_form');
+  cache_clear_all('form_state_' . $form['#build_id'], 'cache_form');
+  $node = node_load($form_values['values']['ir_nid']);
+  $url = url('node/' . $node->nid . '/reservation', array('absolute' => TRUE));
+  cache_clear_all($url, 'cache_page');
 }
 
 // function ir_form_submit
 
+function _ir_status_markup($reserved, $node) {
+  $text0 = variable_get('ir_settings_' . $node->type . '_0', 'Not reserved');
+  $text1 = variable_get('ir_settings_' . $node->type . '_1', 'Reserved');
+
+  $statustext = t($reserved ? $text1 : $text0);
+
+  return token_replace($statustext, array('node' => $node));
+}
+
+function _ir_button_value($reserved) {
+  return $reserved ? t('Clear reservation') : t('Reserve it for me');
+}

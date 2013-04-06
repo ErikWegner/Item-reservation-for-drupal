@@ -169,10 +169,13 @@ function ir_admin() {
 
 
 
-function ir_form($a, $form_state, $node) {
+function ir_form($a, &$form_state, $node) {
   $form = array();
   $type = $node->type;
   $reserved = _ir_node_is_reserved(_ir_query_result($node->nid));
+
+  $form['#prefix'] = '<div id="ir-form-wrapper">';
+  $form['#suffix'] = '</div>';
 
   $form['ir_status'] = array(
     '#markup' => _ir_status_markup($reserved, $node),
@@ -191,9 +194,11 @@ function ir_form($a, $form_state, $node) {
       '#value' => _ir_button_value($reserved),
       '#prefix' => '<div id="irbutton">',
       '#suffix' => '</div>',
-      '#ajax' => array(
-        'callback' => 'ir_ajaxsubmit_callback',
-      ),
+      '#weight' => 100,
+     '#ajax' => array(
+      'callback' => 'ir_ajaxsubmit_callback',
+       'wrapper' => 'ir-form-wrapper',
+     ),
     );
   }
 
@@ -204,7 +209,7 @@ function ir_form($a, $form_state, $node) {
 
 // function ir_form
 
-function ir_ajaxsubmit_callback($form, $form_state) {
+function ir_ajaxsubmit_callback($form, &$form_state) {
   $node = node_load($form_state['values']['ir_nid']);
   $reserved = _ir_node_is_reserved(_ir_query_result($node->nid));
 
@@ -213,13 +218,7 @@ function ir_ajaxsubmit_callback($form, $form_state) {
   $button = $form['submit'];
   $button['#value'] = _ir_button_value($reserved);
 
-  return array(
-    '#type' => 'ajax',
-    '#commands' => array(
-      ajax_command_replace("#irbox", render($element)),
-      ajax_command_replace("#irbutton", render($button))
-    )
-  );
+  return $form;
 }
 
 function ir_mollom_form_list() {
@@ -242,16 +241,16 @@ function ir_mollom_form_info($form_id) {
   return $form_info;
 }
 
-function ir_form_submit($form_id, $form_values) {
+function ir_form_submit($form, &$form_state) {
   if (!user_access('reserve item')) {
     drupal_access_denied();
     return;
   }
 
-  $result = _ir_query_result($form_values['values']['ir_nid']);
+  $result = _ir_query_result($form_state['values']['ir_nid']);
   if (empty($result)) {
     $result = array(
-      'nid' => $form_values['values']['ir_nid'],
+      'nid' => $form_state['values']['ir_nid'],
       'status' => 0,
     );
     $insert = TRUE;
@@ -264,9 +263,11 @@ function ir_form_submit($form_id, $form_values) {
   drupal_write_record('itemreservation', $result, $insert ? array() : array('id'));
   cache_clear_all('form_' . $form['#build_id'], 'cache_form');
   cache_clear_all('form_state_' . $form['#build_id'], 'cache_form');
-  $node = node_load($form_values['values']['ir_nid']);
+  $node = node_load($form_state['values']['ir_nid']);
   $url = url('node/' . $node->nid . '/reservation', array('absolute' => TRUE));
   cache_clear_all($url, 'cache_page');
+  
+  $form_state['rebuild'] = TRUE;
 }
 
 // function ir_form_submit
